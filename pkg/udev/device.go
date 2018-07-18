@@ -1,5 +1,6 @@
 // +build linux,cgo
-package udev
+
+package udev // import "github.com/shovanmaity/libudev-go-wrapper/pkg/udev"
 
 /*
   #cgo LDFLAGS: -ludev
@@ -13,14 +14,14 @@ type UdevDevice struct {
 }
 
 // newUdevDevice is a private helper function and returns a pointer to a new device.
-func newUdevDevice(ptr *C.struct_udev_device) (ud *UdevDevice) {
+func newUdevDevice(ptr *C.struct_udev_device) *UdevDevice {
 	if ptr == nil {
 		return nil
 	}
-	ud = &UdevDevice{
+	ud := &UdevDevice{
 		device: ptr,
 	}
-	return
+	return ud
 }
 
 // UnrefDeviceUdev frees udev structure.
@@ -28,24 +29,25 @@ func (ud *UdevDevice) UnrefDeviceUdev() {
 	C.udev_device_unref(ud.device)
 }
 
-// PropertyValue retrieves the value of a device property
-func (ud *UdevDevice) PropertyValue(key string) string {
+// GetPropertyValue retrieves the value of a device property
+func (ud *UdevDevice) GetPropertyValue(key string) string {
 	k := C.CString(key)
 	defer freeCharPtr(k)
 	return C.GoString(C.udev_device_get_property_value(ud.device, k))
 }
 
-// Devtype returns the devtype string of the udev device.
-func (ud *UdevDevice) UdevDeviceGetDevtype() string {
+// GetDevtype returns type of the disk
+func (ud *UdevDevice) GetDevtype() string {
 	return C.GoString(C.udev_device_get_devtype(ud.device))
 }
 
-// UdevDeviceGetDevnode returns the device node file name belonging to the udev device.
-func (ud *UdevDevice) UdevDeviceGetDevnode() string {
+// GetDevnode returns the device node file name belonging to the udev device.
+func (ud *UdevDevice) GetDevnode() string {
 	return C.GoString(C.udev_device_get_devnode(ud.device))
 }
 
-// UdevDeviceGetAction returns device action when it is monitored.
-func (ud *UdevDevice) UdevDeviceGetAction() string {
+// GetAction returns device action like add when it is attached remove
+// when the device is removed
+func (ud *UdevDevice) GetAction() string {
 	return C.GoString(C.udev_device_get_action(ud.device))
 }

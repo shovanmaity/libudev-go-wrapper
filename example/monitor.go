@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"syscall"
 
-	"github.com/ShovanMaity/libuev-go-wrapper/pkg/fdutil"
-	"github.com/ShovanMaity/libuev-go-wrapper/pkg/udev"
+	"github.com/shovanmaity/libudev-go-wrapper/pkg/fdutil"
+	"github.com/shovanmaity/libudev-go-wrapper/pkg/udev"
 )
 
 func main() {
@@ -14,20 +14,20 @@ func main() {
 		fmt.Println("Unable to create udev new object")
 	}
 	defer newUdev.UnrefUdev()
-	udevMonitor := newUdev.NewUdeviceMonitor(udev.UDEV_SOURCE)
+	udevMonitor := newUdev.NewMonitor(udev.UDEV_SOURCE)
 	if udevMonitor == nil {
 		fmt.Println("Unable to create udevmonitor object")
 	}
 	defer udevMonitor.UdevMonitorUnref()
-	ret := udevMonitor.UdevMonitorFilterAddMatchSubsystemDevtype(udev.UDEV_SUBSYSTEM)
+	ret := udevMonitor.AddMatchSubsystemDevtypeFilter(udev.UDEV_SUBSYSTEM)
 	if ret < 0 {
 		fmt.Println("Unable to apply monitor filter")
 	}
-	ret = udevMonitor.UdevMonitorEnableReceiving()
+	ret = udevMonitor.EnableReceiving()
 	if ret < 0 {
 		fmt.Println("Unable to enable monitor receiving")
 	}
-	fd := udevMonitor.UdevMonitorGetFd()
+	fd := udevMonitor.GetFdValue()
 	if fd < 0 {
 		fmt.Println("Unable to get fd value")
 	}
@@ -40,18 +40,18 @@ func main() {
 			continue
 		}
 		if fdutil.FD_ISSET(fds, int(fd)) {
-			newdev := udevMonitor.UdevMonitorReceiveDevice()
-			if newdev.UdevDeviceGetDevnode() == "" {
+			newdev := udevMonitor.ReceiveDevice()
+			if newdev.GetDevnode() == "" {
 				continue
 			}
-			devType := newdev.PropertyValue(udev.UDEV_DEVTYPE)
-			action := newdev.UdevDeviceGetAction()
+			devType := newdev.GetPropertyValue(udev.UDEV_DEVTYPE)
+			action := newdev.GetAction()
 			if devType == "disk" && (action == udev.UDEV_ACTION_ADD || action == udev.UDEV_ACTION_REMOVE) {
 				fmt.Println("-------------- Disk Details ------------------")
 				fmt.Println("Action : ", action)
-				fmt.Println("Vendor : ", newdev.PropertyValue(udev.UDEV_VENDOR))
-				fmt.Println("Model : ", newdev.PropertyValue(udev.UDEV_MODEL))
-				fmt.Println("Serial : ", newdev.PropertyValue(udev.UDEV_SERIAL))
+				fmt.Println("Vendor : ", newdev.GetPropertyValue(udev.UDEV_VENDOR))
+				fmt.Println("Model : ", newdev.GetPropertyValue(udev.UDEV_MODEL))
+				fmt.Println("Serial : ", newdev.GetPropertyValue(udev.UDEV_SERIAL))
 				fmt.Println("----------------------------------------------")
 			}
 			newdev.UnrefDeviceUdev()

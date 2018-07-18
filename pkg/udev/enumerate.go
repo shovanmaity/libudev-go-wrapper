@@ -1,5 +1,6 @@
 // +build linux,cgo
-package udev
+
+package udev // import "github.com/shovanmaity/libudev-go-wrapper/pkg/udev"
 
 /*
   #cgo LDFLAGS: -ludev
@@ -7,34 +8,31 @@ package udev
 */
 import "C"
 
-// UdevEnumerate wraps a libudev udev_enumerate object
+// UdevEnumerate wraps udev_enumerate struct
 type UdevEnumerate struct {
 	enumerate *C.struct_udev_enumerate
 }
 
-// UnrefUdevEnumerate frees udev_enumerate structure.
+// UnrefUdevEnumerate frees udev_enumerate struct
 func (ue *UdevEnumerate) UnrefUdevEnumerate() {
 	C.udev_enumerate_unref(ue.enumerate)
 }
 
-// UdevEnumerateAddMatchSubsystem adds filter in UdeviceMon struct.
-func (ue *UdevEnumerate) UdevEnumerateAddMatchSubsystem(subSystem string) int {
+// AddMatchSubsystemFilter adds filter in UdeviceMon struct.
+func (ue *UdevEnumerate) AddMatchSubsystemFilter(subSystem string) int {
 	subsystem := C.CString(subSystem)
-	if subsystem == nil {
-		return -1
-	}
 	defer freeCharPtr(subsystem)
 	ret := C.udev_enumerate_add_match_subsystem(ue.enumerate, subsystem)
 	return int(ret)
 }
 
-// UdevEnumerateScanDevices ...
-func (ue *UdevEnumerate) UdevEnumerateScanDevices() int {
+// ScanDevices ...
+func (ue *UdevEnumerate) ScanDevices() int {
 	ret := C.udev_enumerate_scan_devices(ue.enumerate)
 	return int(ret)
 }
 
-//UdevEnumerateGetListEntry ...
-func (ue *UdevEnumerate) UdevEnumerateGetListEntry() *UdevListEntry {
+//GetListEntry ...
+func (ue *UdevEnumerate) GetListEntry() *UdevListEntry {
 	return newUdevListEntry(C.udev_enumerate_get_list_entry(ue.enumerate))
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/ShovanMaity/libuev-go-wrapper/pkg/udev"
+	"github.com/shovanmaity/libudev-go-wrapper/pkg/udev"
 )
 
 func main() {
@@ -17,25 +17,25 @@ func main() {
 		fmt.Println("Unable to create UdevEnumerate object")
 	}
 	defer newUdevEnumerate.UnrefUdevEnumerate()
-	ret := newUdevEnumerate.UdevEnumerateAddMatchSubsystem(udev.UDEV_SUBSYSTEM)
+	ret := newUdevEnumerate.AddMatchSubsystemFilter(udev.UDEV_SUBSYSTEM)
 	if ret < 0 {
 		fmt.Println("Unable to apply subsystem filter")
 	}
-	err := newUdevEnumerate.UdevEnumerateScanDevices()
+	err := newUdevEnumerate.ScanDevices()
 	if err < 0 {
 		fmt.Println("Unable to scan device list")
 	}
-	for l := newUdevEnumerate.UdevEnumerateGetListEntry(); l != nil; l = l.UdevListEntryGetNext() {
-		s := l.UdevListEntryGetName()
-		dev := newUdev.NewDeviceFromSysPath(s)
+	for l := newUdevEnumerate.GetListEntry(); l != nil; l = l.GetNext() {
+		s := l.GetName()
+		dev := newUdev.GetDeviceFromSysPath(s)
 		if dev == nil {
 			continue
 		}
-		if dev.UdevDeviceGetDevtype() == "disk" && dev.PropertyValue(udev.UDEV_TYPE) == "disk" {
+		if dev.GetDevtype() == "disk" && dev.GetPropertyValue(udev.UDEV_TYPE) == "disk" {
 			fmt.Println("-------------- Disk Details ------------------")
-			fmt.Println("Vendor : ", dev.PropertyValue(udev.UDEV_VENDOR))
-			fmt.Println("Model : ", dev.PropertyValue(udev.UDEV_MODEL))
-			fmt.Println("Serial : ", dev.PropertyValue(udev.UDEV_SERIAL))
+			fmt.Println("Vendor : ", dev.GetPropertyValue(udev.UDEV_VENDOR))
+			fmt.Println("Model : ", dev.GetPropertyValue(udev.UDEV_MODEL))
+			fmt.Println("Serial : ", dev.GetPropertyValue(udev.UDEV_SERIAL))
 			fmt.Println("----------------------------------------------")
 		}
 		dev.UnrefDeviceUdev()

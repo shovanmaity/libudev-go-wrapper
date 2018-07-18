@@ -1,18 +1,18 @@
 // +build linux,cgo
-package udev
 
+package udev // import "github.com/shovanmaity/libudev-go-wrapper/pkg/udev"
 /*
   #cgo LDFLAGS: -ludev
   #include <libudev.h>
 */
 import "C"
 
-// Udev wraps a libudev udev object
+// Udev wraps udev c struct
 type Udev struct {
 	udev *C.struct_udev
 }
 
-// newDevis a private helper function and returns a pointer to a new udev
+// newUdev is a private helper function and returns a pointer of Udev
 func newUdev(ptr *C.struct_udev) (u *Udev) {
 	if ptr == nil {
 		return nil
@@ -23,7 +23,7 @@ func newUdev(ptr *C.struct_udev) (u *Udev) {
 	return
 }
 
-// NewDev is a function and which returns a pointer to a new Udev
+// NewDev returns a pointer to Udev
 func NewUdev() (u *Udev) {
 	udev := C.udev_new()
 	if udev == nil {
@@ -32,32 +32,33 @@ func NewUdev() (u *Udev) {
 	return newUdev(udev)
 }
 
-// UnrefUdev frees udev structure.
+// UnrefUdev frees udev pointer
 func (u *Udev) UnrefUdev() {
 	C.udev_unref(u.udev)
 }
 
-// NewDeviceFromSysPath identify the block device currently attached to the system
-func (u *Udev) NewDeviceFromSysPath(sysPath string) *UdevDevice {
+// GetDeviceFromSysPath identify the block device currently attached to the system
+func (u *Udev) GetDeviceFromSysPath(sysPath string) *UdevDevice {
 	syspath := C.CString(sysPath)
 	if syspath == nil {
 		return nil
 	}
 	defer freeCharPtr(syspath)
-	dev := newUdevDevice(C.udev_device_new_from_syspath(u.udev, syspath))
-	return dev
+	device := newUdevDevice(C.udev_device_new_from_syspath(u.udev, syspath))
+	return device
 }
 
 // NewUdevEnumerate returns a pointer to a Udevenumerate
-func NewUdevEnumerate(u *Udev) (ue *UdevEnumerate) {
-	ue = &UdevEnumerate{
+func NewUdevEnumerate(u *Udev) *UdevEnumerate {
+	ue := &UdevEnumerate{
 		enumerate: C.udev_enumerate_new(u.udev),
 	}
-	return
+	return ue
 }
 
-// NewUdeviceMonitor use newUdeviceMon() and use returns UdeviceMon pointer in success
-func (u *Udev) NewUdeviceMonitor(source string) *UdevMonitor {
+// NewMonitor use newUdeviceMon() and use returns UdeviceMon pointer in success
+// Monitor source can be kernel or udev.
+func (u *Udev) NewMonitor(source string) *UdevMonitor {
 	monitorSources := C.CString(source)
 	if monitorSources == nil {
 		return nil

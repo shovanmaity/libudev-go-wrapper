@@ -1,5 +1,5 @@
 // +build linux,cgo
-package udev
+package udev // import "github.com/shovanmaity/libudev-go-wrapper/pkg/udev"
 
 /*
   #cgo LDFLAGS: -ludev
@@ -7,12 +7,13 @@ package udev
 */
 import "C"
 
-// UdeviceMon wraps a libudev monitor device object
+// UdeviceMonitor wraps udev_monitor c struct
 type UdevMonitor struct {
 	monitor *C.struct_udev_monitor
 }
 
-// newUdeviceMon is a helper function and returns a pointer to a new monitor device.
+// newUdeviceMon is private helper function and returns
+// UdevMonitor pointer on success
 func newUdevMonitor(ptr *C.struct_udev_monitor) (um *UdevMonitor) {
 	if ptr == nil {
 		return nil
@@ -23,7 +24,7 @@ func newUdevMonitor(ptr *C.struct_udev_monitor) (um *UdevMonitor) {
 	return
 }
 
-// UdevMonitorRef ....
+// UdevMonitorRef
 func (um *UdevMonitor) UdevMonitorRef() {
 	C.udev_monitor_ref(um.monitor)
 }
@@ -33,42 +34,26 @@ func (um *UdevMonitor) UdevMonitorUnref() {
 	C.udev_monitor_unref(um.monitor)
 }
 
-// UdevMonitorFilterAddMatchSubsystemDevtype adds filter in UdeviceMon struct.
-func (um *UdevMonitor) UdevMonitorFilterAddMatchSubsystemDevtype(key string) int {
+// AddMatchSubsystemDevtypeFilter adds filter in UdeviceMon it starts monitoring
+// only for filtered subsystem like block / usb ...
+func (um *UdevMonitor) AddMatchSubsystemDevtypeFilter(key string) int {
 	subsystem := C.CString(key)
-	if subsystem == nil {
-		return -1
-	}
 	defer freeCharPtr(subsystem)
 	ret := C.udev_monitor_filter_add_match_subsystem_devtype(um.monitor, subsystem, nil)
 	return int(ret)
 }
 
-// UdevMonitorEnableReceiving binds udev_monitor socket to event source.
-func (um *UdevMonitor) UdevMonitorEnableReceiving() int {
+// EnableReceiving binds udev_monitor socket to event source.
+func (um *UdevMonitor) EnableReceiving() int {
 	return int(C.udev_monitor_enable_receiving(um.monitor))
 }
 
-// UdevMonitorGetFd retrieves socket file descriptor associated with monitor.
-func (um *UdevMonitor) UdevMonitorGetFd() int {
+// GetFdValue retrieves socket file descriptor associated with monitor.
+func (um *UdevMonitor) GetFdValue() int {
 	return int(C.udev_monitor_get_fd(um.monitor))
 }
 
-// UdevMonitorReceiveDevice receives data from udev monitor socket.
-func (um *UdevMonitor) UdevMonitorReceiveDevice() *UdevDevice {
+// ReceiveDevice receives data from udev monitor socket.
+func (um *UdevMonitor) ReceiveDevice() *UdevDevice {
 	return newUdevDevice(C.udev_monitor_receive_device(um.monitor))
 }
-
-// UdevMonitorSetReceiveBufferSize ...
-func (um *UdevMonitor) UdevMonitorSetReceiveBufferSize() {
-
-}
-
-// UdevMonitorNewFromNetlink ..
-func (um *UdevMonitor) UdevMonitorNewFromNetlink() {
-
-}
-
-//udev_monitor_filter_add_match_tag ()
-//udev_monitor_filter_update ()
-//udev_monitor_filter_remove ()

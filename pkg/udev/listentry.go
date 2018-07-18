@@ -7,28 +7,28 @@ package udev
 */
 import "C"
 
-// UdevDevice wraps a libudev device object
+// UdevListEntry wraps udev_list_entry struct
 type UdevListEntry struct {
 	listEntry *C.struct_udev_list_entry
 }
 
-// newUdevListEntry a private helper function and returns a pointer to a new udev
-func newUdevListEntry(ptr *C.struct_udev_list_entry) (le *UdevListEntry) {
+// newUdevListEntry a private helper function returns a pointer UdevListEntry
+func newUdevListEntry(ptr *C.struct_udev_list_entry) *UdevListEntry {
 	if ptr == nil {
 		return nil
 	}
-	le = &UdevListEntry{
+	le := &UdevListEntry{
 		listEntry: ptr,
 	}
-	return
+	return le
 }
 
-//UdevListEntryGetNext ...
-func (le *UdevListEntry) UdevListEntryGetNext() *UdevListEntry {
+// GetNext ...
+func (le *UdevListEntry) GetNext() *UdevListEntry {
 	return newUdevListEntry(C.udev_list_entry_get_next(le.listEntry))
 }
 
-//UdevListEntryGetName ...
-func (le *UdevListEntry) UdevListEntryGetName() string {
+// GetName ...
+func (le *UdevListEntry) GetName() string {
 	return C.GoString(C.udev_list_entry_get_name(le.listEntry))
 }
